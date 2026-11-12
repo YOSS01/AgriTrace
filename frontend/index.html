@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgriTrace – Traçabilité agricole sur blockchain</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>AgriTrace</h1>
+    <div class="sub">Traçabilité des produits agricoles sur blockchain</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="who">
+    <label for="role">Je suis :</label>
+    <select id="role"></select>
+  </div>
+  <div class="chain">Bloc actuel : <b id="blockNo">–</b><br><span class="mono" id="myAddr"></span></div>
+</header>
+
+<main>
+  <div>
+    <div class="card">
+      <h2>1. Créer un lot</h2>
+      <p class="hint">Réservé à l'agriculteur. C'est « l'acte de naissance » du produit.</p>
+      <label class="f">Produit</label>
+      <input type="text" id="cProduct" value="Tomates cerises bio">
+      <div class="row2">
+        <div><label class="f">Quantité (kg)</label><input type="number" id="cQty" value="800" min="1"></div>
+        <div><label class="f">Origine</label><input type="text" id="cOrigin" value="Ferme Chtouka – parcelle B3"></div>
+      </div>
+      <label class="f">Certificat (facultatif) : seule son empreinte est enregistrée</label>
+      <input type="file" id="cFile">
+      <button id="btnCreate">Créer le lot</button>
+    </div>
+
+    <div class="card">
+      <h2>2. Ajouter une étape</h2>
+      <p class="hint">Réservé au propriétaire actuel du lot sélectionné : <b id="selInfo1">aucun lot</b></p>
+      <label class="f">Action</label>
+      <input type="text" id="sAction" list="actions" placeholder="Choisir ou écrire…">
+      <datalist id="actions"></datalist>
+      <div class="row2">
+        <div><label class="f">Lieu</label><input type="text" id="sLocation" placeholder="Agadir"></div>
+        <div><label class="f">Détails</label><input type="text" id="sDetails" placeholder="760 kg catégorie A"></div>
+      </div>
+      <label class="f">Document (facultatif)</label>
+      <input type="file" id="sFile">
+      <button id="btnStep">Enregistrer l'étape</button>
+    </div>
+
+    <div class="card">
+      <h2>3. Transférer le lot</h2>
+      <p class="hint">Le propriétaire passe le lot à l'acteur suivant : <b id="selInfo2">aucun lot</b></p>
+      <label class="f">Destinataire</label>
+      <select class="in" id="tTo"></select>
+      <button id="btnTransfer">Transférer</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Lots enregistrés sur la blockchain</h2>
+      <p class="hint">Cliquez sur un lot pour voir son historique.</p>
+      <div id="batches"><div class="empty">Aucun lot pour le moment. Choisissez « Agriculteur » puis créez un lot.</div></div>
+    </div>
+
+    <div class="card" id="detailCard" style="display:none">
+      <h2 id="dTitle"></h2>
+      <div class="detail">
+        <div>
+          <div class="kv" id="dInfo"></div>
+          <div id="dTimeline"></div>
+        </div>
+        <div>
+          <div class="qr">
+            <div id="dQr"></div>
+            <div style="font-size:12.5px;color:var(--mut);margin:4px 0">QR code à imprimer sur l'emballage</div>
+            <a id="dLink" target="_blank" rel="noopener">Ouvrir la vue consommateur</a>
+          </div>
+          <div class="verify">
+            <b style="font-size:13.5px">Vérifier un document</b>
+            <input type="file" id="vFile" style="margin-top:6px">
+            <div id="vRes"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Journal de la blockchain</h2>
+      <p class="hint">Chaque action est une transaction signée, rangée dans un bloc. Rien ne peut être modifié ni supprimé.</p>
+      <div id="log"><div class="empty">Aucune transaction.</div></div>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script src="vendor/ethers.umd.min.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="common.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

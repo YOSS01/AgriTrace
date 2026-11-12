@@ -1,0 +1,17 @@
+{
+  "name": "agritrace",
+  "version": "1.0.0",
+  "description": "Blockchain traceability of agricultural products - demo",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "compile": "node scripts/compile.js",
+    "test": "node test/test.js",
+    "scenario": "node scripts/scenario.js"
+  },
+  "devDependencies": {
+    "ethers": "^6.17.0",
+    "hardhat": "^2.29.2",
+    "solc": "0.8.24"
+  },
+  "private": true
+}
