@@ -1,8 +1,7 @@
 // ONE COMMAND DEMO:  npm start
 // 1) starts a local blockchain (Hardhat node)   2) compiles + deploys the contract
-// 3) registers the actors                       4) serves the web interface
+// 3) registers the actors                       4) serves the web interface (Next.js)
 const { spawn } = require("child_process");
-const http = require("http");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -30,36 +29,21 @@ async function waitForRpc(provider) {
   throw new Error("The local blockchain did not start");
 }
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".txt": "text/plain; charset=utf-8" };
+// Runs the Next.js command line (build or start) and resolves when it exits / is ready.
+const nextCli = path.join(ROOT, "node_modules", "next", "dist", "bin", "next");
 
-function startWebServer(lanUrl) {
-  const server = http.createServer((req, res) => {
-    const url = new URL(req.url, "http://x");
-    // /rpc -> forwards JSON-RPC calls to the blockchain node (so a phone on the same Wi-Fi can read it too)
-    if (url.pathname === "/rpc" && req.method === "POST") {
-      const proxy = http.request(RPC_URL, { method: "POST", headers: { "content-type": "application/json" } }, (r) => {
-        res.writeHead(r.statusCode, { "content-type": "application/json" });
-        r.pipe(res);
-      });
-      proxy.on("error", () => { res.writeHead(502); res.end("{}"); });
-      req.pipe(proxy);
-      return;
-    }
-    if (url.pathname === "/config.json") {
-      res.writeHead(200, { "content-type": MIME[".json"], "cache-control": "no-store" });
-      res.end(JSON.stringify({ lanUrl }));
-      return;
-    }
-    let file = path.normalize(path.join(ROOT, "frontend", url.pathname === "/" ? "index.html" : decodeURIComponent(url.pathname)));
-    if (!file.startsWith(path.join(ROOT, "frontend")) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      res.writeHead(404); res.end("Not found"); return;
-    }
-    res.writeHead(200, { "content-type": MIME[path.extname(file)] || "application/octet-stream", "cache-control": "no-store" });
-    fs.createReadStream(file).pipe(res);
-  });
+function buildWeb() {
   return new Promise((resolve, reject) => {
-    server.on("error", reject);
-    server.listen(WEB_PORT, "0.0.0.0", () => resolve(server));
+    const p = spawn(process.execPath, [nextCli, "build"], { cwd: ROOT, stdio: ["ignore", "ignore", "inherit"] });
+    p.on("exit", (code) => (code === 0 ? resolve() : reject(new Error("The web interface could not be built"))));
+  });
+}
+
+function startWeb() {
+  return new Promise((resolve, reject) => {
+    const p = spawn(process.execPath, [nextCli, "start", "-H", "0.0.0.0", "-p", String(WEB_PORT)], { cwd: ROOT, env: { ...process.env, PORT: String(WEB_PORT) }, stdio: ["ignore", "pipe", "inherit"] });
+    p.stdout.on("data", (d) => { if (String(d).includes("Ready")) resolve(p); });
+    p.on("exit", (code) => reject(new Error("The web interface stopped (is port " + WEB_PORT + " already used?)")));
   });
 }
 
@@ -67,9 +51,10 @@ async function main() {
   console.log("1/3  Starting the local blockchain...");
   const hardhatCli = path.join(ROOT, "node_modules", "hardhat", "internal", "cli", "cli.js");
   const node = spawn(process.execPath, [hardhatCli, "node", "--port", String(RPC_PORT)], { cwd: ROOT, stdio: ["ignore", "ignore", "inherit"] });
-  const stop = () => { try { node.kill(); } catch {} process.exit(0); };
-  process.on("SIGINT", stop);
-  process.on("SIGTERM", stop);
+  let web = null;
+  const stop = (code = 0) => { try { node.kill(); } catch {} try { web && web.kill(); } catch {} process.exit(code); };
+  process.on("SIGINT", () => stop(0));
+  process.on("SIGTERM", () => stop(0));
   node.on("exit", (code) => { if (code) { console.error("The blockchain node stopped (is port 8545 already used?)"); process.exit(1); } });
 
   const provider = new ethers.JsonRpcProvider(RPC_URL, 31337, { staticNetwork: true });
@@ -80,9 +65,13 @@ async function main() {
   console.log("     Contract address:", info.address);
   info.actors.forEach((a) => console.log(`     ${a.roleLabel.padEnd(15)} ${a.name.padEnd(22)} ${a.address}`));
 
-  console.log("3/3  Starting the web interface...");
+  if (!fs.existsSync(path.join(ROOT, ".next", "BUILD_ID"))) {
+    console.log("     First start: building the web interface (about one minute)...");
+    await buildWeb();
+  }
+  console.log("3/3  Starting the web interface (Next.js)...");
   const lanUrl = `http://${lanAddress()}:${WEB_PORT}`;
-  await startWebServer(lanUrl);
+  try { web = await startWeb(); } catch (e) { console.error(e.message); stop(1); }
 
   console.log("\n==============================================================");
   console.log("  AgriTrace is ready.");

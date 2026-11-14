@@ -4,14 +4,35 @@
   "description": "Blockchain traceability of agricultural products - demo",
   "scripts": {
     "start": "node scripts/start.js",
+    "build": "next build",
+    "dev": "next dev",
     "compile": "node scripts/compile.js",
     "test": "node test/test.js",
     "scenario": "node scripts/scenario.js"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "ethers": "^6.17.0",
     "hardhat": "^2.29.2",
-    "solc": "0.8.24"
+    "solc": "0.8.24",
+    "tailwindcss": "^4.3.5",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^7.0.2"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.73.0",
+    "next": "^16.4.6",
+    "qrcode.react": "^4.2.0",
+    "radix-ui": "^1.8.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^3.7.0"
+  }
 }

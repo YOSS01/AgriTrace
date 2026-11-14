@@ -1,5 +1,5 @@
 // Deploys AgriTrace on the local blockchain and registers the actors of the supply chain.
-// Result: frontend/contract.json  { address, abi, actors }
+// Result: public/contract.json  { address, abi, actors }
 const fs = require("fs");
 const path = require("path");
 const { ethers } = require("ethers");
@@ -31,7 +31,7 @@ async function deploy(provider) {
   }
 
   const info = { address, abi, actors };
-  fs.writeFileSync(path.join(__dirname, "..", "frontend", "contract.json"), JSON.stringify(info, null, 2));
+  fs.writeFileSync(path.join(__dirname, "..", "public", "contract.json"), JSON.stringify(info, null, 2));
   return info;
 }
 

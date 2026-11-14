@@ -1,5 +1,7 @@
 node_modules
+.next
 build
 cache
 artifacts
-frontend/contract.json
+next-env.d.ts
+public/contract.json

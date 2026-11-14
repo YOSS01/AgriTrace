@@ -5,7 +5,7 @@ const path = require("path");
 const { ethers } = require("ethers");
 
 async function main() {
-  const info = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "frontend", "contract.json"), "utf8"));
+  const info = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "public", "contract.json"), "utf8"));
   const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
   const as = async (i) => new ethers.Contract(info.address, info.abi, await provider.getSigner(i));
   const [farmer, coop, transporter, shop] = [await as(1), await as(2), await as(3), await as(4)];
